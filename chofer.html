@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Mendoza App - Chofer PRO</title>
+    <meta name="theme-color" content="#2563eb">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* VARIABLES MODERNAS */
+        :root {
+            --primary: #2563eb; /* Azul moderno (Blue-600) */
+            --primary-dark: #1e40af;
+            --secondary: #10b981; /* Verde éxito */
+            --warning: #f59e0b; /* Naranja solicitud */
+            --danger: #ef4444; /* Rojo peligro */
+            --dark-text: #1f2937;
+            --bg-light: #f3f4f6;
+            --bg-card: #ffffff;
+            --radius-md: 8px;
+            --radius-lg: 16px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        body { font-family: 'Inter', sans-serif; background: var(--bg-light); margin: 0; padding: 0; color: var(--dark-text); -webkit-tap-highlight-color: transparent; }
+        
+        /* HEADER */
+        .app-header { background: var(--primary); color: white; padding: 15px 20px; position: sticky; top: 0; z-index: 50; box-shadow: var(--shadow); display: flex; justify-content: space-between; align-items: center; }
+        .app-header h1 { font-size: 1.1rem; margin: 0; font-weight: 700; }
+        .header-actions button { background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px; border-radius: 6px; cursor: pointer; margin-left: 5px; }
+        
+        /* BARRA DE ESTADO */
+        .status-bar { background: white; padding: 10px; text-align: center; border-bottom: 1px solid #e5e7eb; position: sticky; top: 58px; z-index: 40; font-size: 0.9rem; font-weight: 500; }
+        
+        /* CONTENEDORES */
+        .container { max-width: 500px; margin: 0 auto; padding: 20px; }
+        .card { background: var(--bg-card); border-radius: var(--radius-lg); padding: 20px; box-shadow: var(--shadow); margin-bottom: 20px; }
+        
+        /* FORMULARIOS */
+        label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.9rem; color: #4b5563; }
+        input { width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: var(--radius-md); font-size: 1rem; box-sizing: border-box; transition: 0.2s; }
+        input:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2); }
+        
+        .btn { width: 100%; padding: 14px; border: none; border-radius: var(--radius-md); font-size: 1rem; font-weight: 700; cursor: pointer; color: white; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-primary { background: var(--primary); }
+        .btn-success { background: var(--secondary); }
+        .btn-danger { background: var(--danger); }
+        .btn:active { transform: scale(0.98); opacity: 0.9; }
+
+        /* TARJETAS DE VIAJE */
+        .viaje-card { border-left: 5px solid #d1d5db; position: relative; }
+        .viaje-card.solicitado { border-left-color: var(--warning); }
+        .viaje-card.aceptado { border-left-color: var(--secondary); }
+        
+        .viaje-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
+        .badge { padding: 4px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: white; }
+        .badge.solicitado { background: var(--warning); color: #78350f; }
+        .badge.aceptado { background: var(--secondary); }
+        
+        .info-line { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px; font-size: 0.95rem; }
+        .info-icon { color: var(--primary); width: 20px; text-align: center; margin-top: 2px; }
+        
+        /* PARADAS (DETALLE) */
+        .paradas-list {
+            margin: 0px 0 10px 10px;
+            padding-left: 15px;
+            border-left: 2px dashed #d1d5db;
+            font-size: 0.85rem;
+            color: #4b5563;
+        }
+        .paradas-list li {
+            list-style: none;
+            margin-bottom: 3px;
+            position: relative;
+            padding-left: 10px;
+        }
+        .paradas-list li::before {
+            content: "\f054"; /* Icono de flecha (FontAwesome) */
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            color: var(--warning);
+            position: absolute;
+            left: -15px;
+            font-size: 0.6rem;
+            top: 4px;
+        }
+
+        /* BOTONES DE ACCIÓN EN TARJETA */
+        .card-actions { display: grid; gap: 10px; margin-top: 15px; }
+        .btn-mapa { 
+            background: #eff6ff; color: var(--primary); border: 1px solid #bfdbfe; text-decoration: none; padding: 10px; 
+            border-radius: var(--radius-md); text-align: center; font-weight: 600; display: block; transition: 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-mapa:active { background: #dbeafe; }
+        
+        /* Botón Cancelar */
+        .btn-cancel {
+            background: #fecaca; 
+            color: var(--danger);
+            padding: 10px 15px;
+            border: 1px solid var(--danger);
+            border-radius: var(--radius-md);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            transition: 0.2s;
+        }
+        .btn-cancel:active { background: var(--danger); color: white; }
+
+        /* MODAL - CENTRADO (CORREGIDO) */
+        .modal { 
+            display: none; 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background: rgba(0,0,0,0.7); 
+            z-index: 1000; 
+            align-items: center; /* CENTRADO VERTICAL */
+            justify-content: center; /* CENTRADO HORIZONTAL */
+            padding: 20px; 
+            box-sizing: border-box;
+        }
+        .modal.active { 
+            display: flex; 
+        }
+        .modal-content { 
+            background: white; 
+            width: 100%; 
+            max-width: 400px;
+            border-radius: var(--radius-lg); 
+            padding: 25px; 
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3); 
+        }
+        
+        .price-display { background: #f3f4f6; padding: 15px; border-radius: var(--radius-md); text-align: center; margin: 15px 0; }
+        .total-price { font-size: 2rem; font-weight: 800; color: var(--primary); }
+        
+        /* ESTADO DESCONECTADO */
+        .offline-state { text-align: center; padding: 40px 20px; }
+        .offline-icon { font-size: 3rem; color: #9ca3af; margin-bottom: 15px; }
+
+        /* TOAST */
+        .toast-container { position: fixed; bottom: 20px; right: 20px; left: 20px; z-index: 2000; pointer-events: none; }
+        .toast { background: white; padding: 15px; border-radius: var(--radius-md); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); margin-top: 10px; border-left: 4px solid var(--primary); display: flex; align-items: center; gap: 10px; pointer-events: auto; animation: slideIn 0.3s; }
+        @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    </style>
+</head>
+<body>
+    <div class="toast-container" id="toastContainer"></div>
+
+    <header class="app-header">
+        <div style="display:flex; flex-direction:column;">
+            <h1>Chofer PRO</h1>
+            <span style="font-size: 0.75rem; opacity: 0.8;" id="driverInfoDisplay">Cargando...</span>
+        </div>
+        <div class="header-actions" id="headerActions" style="display: none;">
+            <button onclick="logout()" title="Salir"><i class="fas fa-sign-out-alt"></i></button>
+        </div>
+    </header>
+
+    <div class="status-bar" id="statusBar" style="display:none;">
+        Estado Admin: <span id="statusText" style="font-weight: 800;">...</span>
+    </div>
+
+    <div class="container" id="loginContainer">
+        <div class="card">
+            <h2 class="text-center" style="margin-top:0; color:var(--primary);"><i class="fas fa-taxi"></i> Ingreso Chofer</h2>
+            <form id="loginForm">
+                <label>ID de Chofer</label>
+                <input type="number" id="loginId" placeholder="Ej: 101" required>
+                <label style="margin-top:15px;">Dominio (Patente)</label>
+                <input type="text" id="loginDomain" placeholder="Ej: AA123BB" style="text-transform:uppercase;" required>
+                <button type="submit" class="btn btn-primary" style="margin-top:20px;">Ingresar</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="container" id="mainContainer" style="display: none;">
+        
+        <div id="offlineState" class="offline-state" style="display: none;">
+            <i class="fas fa-power-off offline-icon"></i>
+            <h3>Estás Desconectado</h3>
+            <p style="color:#6b7280;">Espera a que el administrador active tu estado para recibir viajes.</p>
+        </div>
+
+        <div id="viajesList"></div>
+    </div>
+
+    <div id="quoteModal" class="modal">
+        <div class="modal-content">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h2 style="margin:0; font-size:1.2rem;"><i class="fas fa-calculator"></i> Cotizar Viaje</h2>
+                <button onclick="closeModal()" style="background:none; border:none; font-size:1.5rem; color:var(--dark-text);">×</button>
+            </div>
+            
+            <p style="font-size:0.9rem; color:#6b7280; margin-bottom:15px;">Consulta la distancia en el mapa e ingrésala para calcular el costo.</p>
+            
+            <input type="hidden" id="modalViajeId">
+            
+            <label>Distancia (KM)</label>
+            <input type="number" id="inputKm" placeholder="0.0" step="0.1" style="font-size:1.5rem; text-align:center; font-weight:700;" oninput="calcularTotal()">
+            
+            <div class="price-display">
+                <small style="text-transform:uppercase; font-weight:600; color:#6b7280;">Total a Cobrar (Base $500 + $900/km)</small>
+                <div class="total-price" id="totalDisplay">$0</div>
+            </div>
+
+            <button class="btn btn-success" onclick="confirmarAceptar()">Confirmar y Aceptar</button>
+        </div>
+    </div>
+
+    <script>
+        // CONFIGURACIÓN TARIFA
+        const TARIFA_POR_KM = 900; // PRECIO ACTUALIZADO: $900 por km
+        const BAJADA_BANDERA = 500; // $500 base
+
+        let driverData = { id: null, name: '', domain: '', status: 'Desconectado' };
+
+        const getEl = (id) => document.getElementById(id);
+
+        function showToast(type, title, msg) {
+            const box = getEl('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.style.borderLeftColor = type === 'error' ? 'var(--danger)' : type === 'warning' ? 'var(--warning)' : 'var(--secondary)';
+            toast.innerHTML = `<div><strong>${title}</strong><br>${msg}</div>`;
+            box.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        }
+
+        // --- LOGIN ---
+        getEl('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const id = parseInt(getEl('loginId').value);
+            const domain = getEl('loginDomain').value.trim().toUpperCase();
+            login(id, domain);
+        });
+
+        function login(id, domain) {
+            const choferes = JSON.parse(localStorage.getItem('choferes_db') || '[]');
+            const chofer = choferes.find(c => c.id === id && c.dominio === domain);
+
+            if (chofer) {
+                driverData = { id: chofer.id, name: chofer.name, domain: chofer.dominio, status: chofer.estado };
+                localStorage.setItem('driver_data', JSON.stringify({ id, domain }));
+                
+                getEl('loginContainer').style.display = 'none';
+                getEl('mainContainer').style.display = 'block';
+                getEl('headerActions').style.display = 'flex';
+                getEl('statusBar').style.display = 'block';
+                getEl('driverInfoDisplay').textContent = `${driverData.name} (${driverData.domain})`;
+                
+                syncStatus();
+            } else {
+                showToast('error', 'Error', 'Credenciales inválidas o chofer no registrado.');
+            }
+        }
+
+        function logout() {
+            if(confirm('¿Cerrar sesión?')) {
+                localStorage.removeItem('driver_data');
+                location.reload();
+            }
+        }
+
+        // --- SYNC ---
+        function syncStatus() {
+            if (!driverData.id) return;
+
+            const choferes = JSON.parse(localStorage.getItem('choferes_db') || '[]');
+            const chofer = choferes.find(c => c.id === driverData.id);
+
+            if (chofer) {
+                driverData.status = chofer.estado;
+                const statusEl = getEl('statusText');
+                statusEl.textContent = driverData.status;
+                statusEl.style.color = driverData.status === 'Conectado' ? 'var(--secondary)' : 'var(--danger)';
+
+                if (driverData.status === 'Conectado') {
+                    getEl('offlineState').style.display = 'none';
+                    renderViajes();
+                } else {
+                    getEl('offlineState').style.display = 'block';
+                    getEl('viajesList').innerHTML = '';
+                }
+            }
+        }
+
+        // --- RENDER VIAJES ---
+        function renderViajes() {
+            const viajes = JSON.parse(localStorage.getItem('viajes') || '[]');
+            const container = getEl('viajesList');
+            container.innerHTML = '';
+
+            // Filtrar: Solicitados O Mis Aceptados (incluye En el Origen y Pasajero Saliendo)
+            const misViajes = viajes.filter(v => 
+                v.estado === 'Solicitado' || 
+                (v.chofer === driverData.name && (v.estado === 'Aceptado' || v.estado === 'En el Origen' || v.estado === 'Pasajero Saliendo'))
+            ).reverse();
+
+            if (misViajes.length === 0) {
+                container.innerHTML = '<p class="text-center" style="color:#6b7280; margin-top:30px;">No hay viajes pendientes.</p>';
+                return;
+            }
+
+            misViajes.forEach(v => {
+                const isMine = v.chofer === driverData.name && (v.estado === 'Aceptado' || v.estado === 'En el Origen' || v.estado === 'Pasajero Saliendo');
+                const statusColor = v.estado === 'En el Origen' || v.estado === 'Pasajero Saliendo' ? 'aceptado' : v.estado.toLowerCase();
+                
+                // Construir URL de Google Maps
+                let mapUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(v.origen)}&destination=${encodeURIComponent(v.destino)}&travelmode=driving`;
+                
+                // Agregar paradas (waypoints) si existen y generar HTML para detalle
+                let paradasHtml = '';
+                if (v.paradas && v.paradas.length > 0) {
+                    const paradasList = v.paradas.map(p => `<li>${p}</li>`).join('');
+                    paradasHtml = `
+                        <p style="font-weight:600; font-size:0.9rem; margin:10px 0 5px 0;"><i class="fas fa-route" style="color:var(--primary-dark);"></i> Paradas Intermedias (${v.paradas.length}):</p>
+                        <ul class="paradas-list">${paradasList}</ul>
+                    `;
+                    mapUrl += `&waypoints=${v.paradas.map(p => encodeURIComponent(p)).join('|')}`;
+                }
+
+                // NUEVA LÓGICA DE AVISO DE SALIDA DEL PASAJERO
+                let passengerOnWayNotice = '';
+                let statusBadgeText = isMine ? (v.estado === 'Pasajero Saliendo' ? 'Saliendo' : (v.estado === 'En el Origen' ? 'Esperando' : 'En Curso')) : 'Nuevo';
+
+                if(v.estado === 'Pasajero Saliendo') {
+                    passengerOnWayNotice = `<p style="text-align:center; font-weight:800; color:var(--secondary); margin-bottom: 10px; padding: 5px 0; border: 1px dashed #10b98144; border-radius: 5px;"><i class="fas fa-running"></i> ¡El pasajero está en camino!</p>`;
+                }
+
+                // Lógica del botón de Avisar Llegada
+                const isDriverArrived = v.estado === 'En el Origen' || v.estado === 'Pasajero Saliendo';
+
+                const arrivalNoticeHtml = isDriverArrived 
+                    ? `<p style="text-align:center; font-weight:700; color:var(--warning); margin-bottom: 10px; padding: 5px 0; border: 1px dashed #f59e0b44; border-radius: 5px;"><i class="fas fa-bell"></i> Pasajero Notificado</p>` 
+                    : `<button class="btn btn-warning" style="background:#f59e0b;" onclick="avisarLlegada(${v.id})"><i class="fas fa-car-side"></i> Avisar Llegada</button>`;
+
+
+                const actions = isMine 
+                    ? `
+                        ${arrivalNoticeHtml}
+                        <button class="btn btn-success" onclick="finalizarViaje(${v.id})"><i class="fas fa-flag-checkered"></i> Finalizar Viaje</button>
+                        <button class="btn-cancel" onclick="cancelarViajeChofer(${v.id})"><i class="fas fa-times-circle"></i> Cancelar Viaje</button>
+                    `
+                    : `
+                        <button class="btn btn-success" onclick="abrirModalCotizar(${v.id})"><i class="fas fa-check"></i> Cotizar y Aceptar</button>
+                        <button class="btn-cancel" onclick="cancelarViajeChofer(${v.id})"><i class="fas fa-times-circle"></i> Cancelar</button>
+                    `;
+
+                const card = document.createElement('div');
+                card.className = `card viaje-card ${statusColor}`;
+                card.innerHTML = `
+                    <div class="viaje-header">
+                        <span style="font-weight:700;">#${v.id}</span>
+                        <span class="badge ${statusColor}">${statusBadgeText}</span>
+                    </div>
+                    <div class="info-line"><i class="fas fa-user info-icon"></i> ${v.cliente}</div>
+                    <div class="info-line"><i class="fas fa-map-marker-alt info-icon"></i> <strong>Origen:</strong> ${v.origen}</div>
+                    ${paradasHtml} 
+                    <div class="info-line"><i class="fas fa-flag-checkered info-icon"></i> <strong>Destino:</strong> ${v.destino}</div>
+                    ${isMine ? `<div class="info-line" style="margin-top:10px; font-weight:700; color:var(--primary);"><i class="fas fa-money-bill-wave info-icon"></i> A cobrar: $${v.costo.toLocaleString('es-AR')}</div>` : ''}
+                    
+                    ${passengerOnWayNotice} <div class="card-actions">
+                        <a href="${mapUrl}" target="_blank" class="btn-mapa"><i class="fas fa-location-arrow"></i> Ver Ruta GPS</a>
+                        ${actions}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // --- COTIZACIÓN Y ACEPTACIÓN ---
+        function abrirModalCotizar(id) {
+            getEl('modalViajeId').value = id;
+            getEl('inputKm').value = '';
+            // Muestra solo la bajada de bandera al abrir
+            getEl('totalDisplay').textContent = '$' + BAJADA_BANDERA.toLocaleString('es-AR'); 
+            getEl('quoteModal').classList.add('active');
+            setTimeout(() => getEl('inputKm').focus(), 100);
+        }
+
+        function closeModal() {
+            getEl('quoteModal').classList.remove('active');
+        }
+
+        function calcularTotal() {
+            const km = parseFloat(getEl('inputKm').value) || 0;
+            // Cálculo con la tarifa de $900/km
+            const total = (km * TARIFA_POR_KM) + BAJADA_BANDERA; 
+            getEl('totalDisplay').textContent = '$' + Math.floor(total).toLocaleString('es-AR');
+        }
+
+        function confirmarAceptar() {
+            const id = parseInt(getEl('modalViajeId').value);
+            const km = parseFloat(getEl('inputKm').value);
+
+            if (!km || km <= 0) return showToast('error', 'Error', 'Ingresa una distancia válida del GPS.');
+
+            const costo = Math.floor((km * TARIFA_POR_KM) + BAJADA_BANDERA);
+            let viajes = JSON.parse(localStorage.getItem('viajes') || '[]');
+            const index = viajes.findIndex(v => v.id === id && v.estado === 'Solicitado');
+
+            if (index !== -1) {
+                viajes[index].estado = 'Aceptado';
+                viajes[index].chofer = driverData.name;
+                viajes[index].dominio = driverData.domain;
+                viajes[index].costo = costo;
+                viajes[index].kilometros = km;
+
+                localStorage.setItem('viajes', JSON.stringify(viajes));
+                closeModal();
+                showToast('success', 'Éxito', `Viaje aceptado. Cobrarás $${costo.toLocaleString('es-AR')}.`);
+                renderViajes();
+            } else {
+                showToast('error', 'Error', 'El viaje ya no está disponible.');
+                closeModal();
+                renderViajes();
+            }
+        }
+        
+        // --- ACCIÓN: AVISAR LLEGADA CHOFER ---
+        function avisarLlegada(id) {
+            let viajes = JSON.parse(localStorage.getItem('viajes') || '[]');
+            const index = viajes.findIndex(v => v.id === id);
+
+            if (index !== -1 && viajes[index].estado === 'Aceptado') {
+                viajes[index].estado = 'En el Origen'; // Nuevo estado
+                localStorage.setItem('viajes', JSON.stringify(viajes));
+                showToast('warning', 'Llegada Enviada', `Pasajero notificado de tu llegada.`);
+                renderViajes();
+            } else {
+                showToast('error', 'Error', 'El viaje no se puede actualizar.');
+            }
+        }
+
+
+        // --- ACCIONES FINALES ---
+        function finalizarViaje(id) {
+            if(!confirm('¿Finalizar este viaje? Confirma el cobro al pasajero.')) return;
+
+            let viajes = JSON.parse(localStorage.getItem('viajes') || '[]');
+            const index = viajes.findIndex(v => v.id === id);
+            
+            if (index !== -1 && (viajes[index].estado === 'Aceptado' || viajes[index].estado === 'En el Origen' || viajes[index].estado === 'Pasajero Saliendo')) {
+                viajes[index].estado = 'Finalizado';
+                viajes[index].costoFinal = viajes[index].costo;
+                localStorage.setItem('viajes', JSON.stringify(viajes));
+                showToast('success', 'Finalizado', `Viaje #${id} completado.`);
+                renderViajes();
+            } else {
+                showToast('error', 'Error', 'El viaje no está en estado Aceptado.');
+            }
+        }
+
+        function cancelarViajeChofer(id) {
+            if (!confirm('¿Estás seguro de que quieres CANCELAR este viaje? Se notificará al pasajero.')) {
+                return;
+            }
+
+            let viajes = JSON.parse(localStorage.getItem('viajes') || '[]');
+            const index = viajes.findIndex(v => v.id === id);
+
+            if (index !== -1 && (viajes[index].estado === 'Solicitado' || viajes[index].estado === 'Aceptado' || viajes[index].estado === 'En el Origen' || viajes[index].estado === 'Pasajero Saliendo')) {
+                viajes[index].estado = 'Cancelado';
+                viajes[index].canceladoPor = driverData.name; 
+                
+                localStorage.setItem('viajes', JSON.stringify(viajes));
+                showToast('warning', 'Cancelado', `Viaje #${id} cancelado correctamente.`);
+                renderViajes();
+            } else {
+                showToast('error', 'Error', 'El viaje no se puede cancelar o ya fue finalizado.');
+            }
+        }
+
+        // --- INICIALIZACIÓN ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const stored = localStorage.getItem('driver_data');
+            if (stored) {
+                const data = JSON.parse(stored);
+                login(data.id, data.domain);
+            }
+            setInterval(syncStatus, 2000); 
+        });
+
+    </script>
+</body>
+</html>
