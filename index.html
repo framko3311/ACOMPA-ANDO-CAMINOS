@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interacción Móvil Socket.IO</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            transition: background-color 0.5s;
+        }
+        h1 { color: #333; }
+        button {
+            padding: 15px 30px;
+            font-size: 1.2em;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        #estado {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <h1 id="titulo">Hola! Presiona el botón.</h1>
+    <div id="estado">Estado: Esperando conexión...</div>
+
+    <button onclick="enviarColor('red')">Celular 1: Poner Rojo</button>
+    <button onclick="enviarColor('blue')">Celular 2: Poner Azul</button>
+
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+    
+    <script>
+        // *** ESTA URL DEBES CAMBIARLA LUEGO DEL PASO 3 ***
+        // Por ahora, usaremos una URL de ejemplo
+        let socket;
+        let SERVER_URL = 'http://localhost:3000'; // Será cambiada a la URL de Render
+
+        function conectar() {
+            try {
+                // Intenta conectarse al servidor
+                socket = io(SERVER_URL);
+                document.getElementById('estado').textContent = 'Estado: Conectado!';
+
+                // 1. RECIBIR: Escucha el evento 'actualizar_color' que viene del servidor
+                socket.on('actualizar_color', (color) => {
+                    document.body.style.backgroundColor = color;
+                    document.getElementById('titulo').textContent = `El otro celular eligió: ${color.toUpperCase()}`;
+                    console.log(`Color actualizado a: ${color}`);
+                });
+
+                socket.on('connect_error', (err) => {
+                    document.getElementById('estado').textContent = `Error de conexión: ${err.message}`;
+                    console.error('Error de conexión:', err);
+                });
+
+            } catch (error) {
+                document.getElementById('estado').textContent = `Error: ${error.message}`;
+                console.error(error);
+            }
+        }
+        
+        // 2. ENVIAR: Envía el evento 'cambiar_color' al servidor
+        function enviarColor(color) {
+            if (socket && socket.connected) {
+                // Envía el mensaje 'cambiar_color' y el valor (rojo o azul)
+                socket.emit('cambiar_color', color);
+            } else {
+                document.getElementById('estado').textContent = 'Estado: Desconectado. Intenta conectar de nuevo.';
+                conectar(); // Intenta reconectar
+            }
+        }
+
+        // Conecta apenas carga la página
+        window.onload = conectar;
+
+        // Si estás probando en localhost, la URL es correcta. 
+        // Si vas a usar Render, ¡no olvides cambiar la variable SERVER_URL!
+    </script>
+</body>
+</html>
